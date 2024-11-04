@@ -41,7 +41,7 @@ class SVM:
         return np.sign(linear_output)  # 會輸出 1 或 -1
 
 # 讀取訓練資料
-train_df = pd.read_csv('train_data.csv')  # 替換成你的訓練 CSV 檔案名稱
+train_df = pd.read_csv('train_data (2).csv')  # 替換成你的訓練 CSV 檔案名稱
 
 # 去除訓練資料中包含空值的行
 required_columns = [
@@ -103,18 +103,36 @@ Y = np.where(train_df['home_team_win'].to_numpy() == 1, 1, 0)
 
 
 # 創建 SVM 模型並進行訓練
+X = train_df[required_columns].to_numpy().astype(float)
+Y = np.where(train_df['home_team_win'].to_numpy() == 1, 1, 0)
+
+# 創建 SVM 模型並進行訓練
 model = SVM()
 model.fit(X, Y)
-
-# 讀取測試資料並填補空值
-test_df = pd.read_csv('same_season_test_data.csv')
-X_test = test_df[required_columns].fillna(test_df[required_columns].mean()).to_numpy().astype(float)
-
+# 讀取驗證資料並填補空值
+validation_df = pd.read_csv('validation.csv')
+X_val = validation_df[required_columns].fillna(validation_df[required_columns].mean()).to_numpy().astype(float)
+y_true = validation_df['home_team_win'].to_numpy()  # 驗證集的真實標籤
 
 # 預測結果
-predictions = model.predict(X_test)
-predictions = np.where(predictions == -1, 0, 1)  # 將 -1 轉換為 0，符合輸出格式
+predictions = model.predict(X_val)
+predictions = np.where(predictions == -1, 0, 1)  # 將 -1 轉換為 0
 
-# 保存結果
-output = pd.DataFrame({'prediction': predictions})
-output.to_csv('predictions.csv', index=False)
+# 計算正確率
+# 計算正確率
+
+
+predictions = predictions[:2998]
+y_true = y_true[:2998]
+accuracy = np.mean(predictions == y_true)
+
+# 顯示 predictions 和 y_true 的長度
+print(f"Length of predictions: {len(predictions)}")
+print(f"Shape of y_true: {y_true.shape}")
+
+
+print(predictions)
+print(y_true)
+# 顯示驗證集的正確率
+print(f"Validation Accuracy: {accuracy * 100:.2f}%")
+
