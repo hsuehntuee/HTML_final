@@ -5,7 +5,7 @@ import os
 os.chdir('logistic_regression')
 print("Current working directory:", os.getcwd())
 # 定義線性回歸類別
-class LogisticRegression:
+class LinearRegression:
     def __init__(self):
         self.w = None
         
@@ -17,7 +17,7 @@ class LogisticRegression:
             z = -10
         return 1 / (1 + np.exp(y * z))
 
-    def fit(self, X, y, eta, epochs, lamb):
+    def fit(self, X, y, eta, epochs):
         # Compute weights w
         N, d = X.shape
         self.w = np.zeros(d)  # Initialize weights based on number of features
@@ -25,17 +25,16 @@ class LogisticRegression:
         
         for _ in range(epochs):  # Iterate over the number of epochs
             idx = np.random.randint(N)  # Randomly select an index
-            # Update weights
-            #gradient = eta * self.theta(X[idx], y[idx]) * y[idx] * X[idx]
-            gradient = eta * (self.theta(X[idx], y[idx]) * y[idx] * X[idx] + 2 * lamb / N * self.w)
-            self.w += gradient
-            #print(self.w)
+
+            prediction = X[idx] @ self.w
+            
+            gradient = 2 * (prediction - y[idx]) * X[idx]
+            gradient = np.clip(gradient, -10, 10)
+            self.w -= eta * gradient
 
     def predict(self, X):
         z = X @ self.w
-        z = np.clip(z, -10, 10)
-        probabilities = np.where(z >= 0, 1 / (1 + np.exp(-z)), np.exp(z) / (1 + np.exp(z)))
-        return np.where(probabilities >= 0.5, 1, 0)
+        return np.where(z >= 0, 1, 0)
 
 # 讀取訓練資料
 train_df = pd.read_csv('../train_data.csv')
@@ -159,8 +158,8 @@ Y = train_df['home_team_win'].to_numpy().astype(float)  # 確保 Y 為 float 類
 
 # 創建線性回歸模型並進行訓練
 #print(len(Y))
-model = LogisticRegression()
-model.fit(X, Y, 0.0001, 400000, 0)
+model = LinearRegression()
+model.fit(X, Y, 0.000001, 1250000)
 
 # 讀取驗證資料並填補空值
 validation_df = pd.read_csv('../validation.csv')
