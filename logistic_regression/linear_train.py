@@ -2,8 +2,6 @@ import pandas as pd
 import numpy as np
 import os
 
-os.chdir('logistic_regression')
-print("Current working directory:", os.getcwd())
 # 定義線性回歸類別
 class LinearRegression:
     def __init__(self):
@@ -37,7 +35,7 @@ class LinearRegression:
         return np.where(z >= 0, 1, 0)
 
 # 讀取訓練資料
-train_df = pd.read_csv('../train_data.csv')
+train_df = pd.read_csv('../train_data (2).csv')
 
 # 去除訓練資料中包含空值的行
 #'''
@@ -181,7 +179,7 @@ Ein = np.mean(train_predictions != Y)
 
 print(f"In-sample Error (Ein): {Ein * 100:.2f}%")
 
-'''
+
 newo = pd.read_csv('../same_season_test_data.csv')
 X_test =newo[required_columns].fillna(validation_df[required_columns].mean()).to_numpy().astype(float)
 X_test = np.hstack((np.ones((X_test.shape[0], 1)), X_test))
@@ -194,5 +192,4 @@ result_df = pd.DataFrame({
 })
 
 # 輸出為 CSV
-result_df.to_csv('result8.csv', index=False)
-'''
+result_df.to_csv('result87.csv', index=False)

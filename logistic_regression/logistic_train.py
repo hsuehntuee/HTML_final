@@ -180,7 +180,7 @@ Ein = np.mean(train_predictions != Y)
 
 print(f"In-sample Error (Ein): {Ein * 100:.2f}%")
 
-'''
+
 newo = pd.read_csv('../same_season_test_data.csv')
 X_test =newo[required_columns].fillna(validation_df[required_columns].mean()).to_numpy().astype(float)
 X_test = np.hstack((np.ones((X_test.shape[0], 1)), X_test))
@@ -194,4 +194,3 @@ result_df = pd.DataFrame({
 
 # 輸出為 CSV
 result_df.to_csv('result8.csv', index=False)
-'''
