@@ -2,16 +2,7 @@ import pandas as pd
 import numpy as np
 from sklearn.utils import resample
 from sklearn.model_selection import train_test_split
-
-class LinearRegression:
-    def __init__(self):
-        self.w = None
-
-    def fit(self, X, y):
-        self.w = np.linalg.pinv(X) @ y  # Compute the weights using the pseudo-inverse
-
-    def predict(self, X):
-        return X.dot(self.w)  # Return the continuous output
+from sklearn.linear_model import LogisticRegression
 
 
 #'''
@@ -131,48 +122,47 @@ X = train_df[required_columns].to_numpy().astype(float)
 X = np.hstack((np.ones((X.shape[0], 1)), X))  # Add bias column
 Y = train_df['home_team_win'].to_numpy().astype(float)  # Target variable
 
-X_train, X_val, Y_train, Y_val = train_test_split(X, Y, test_size=0.3, random_state=42)
+# Split the data into training and validation sets (70% training, 30% validation)
+X_train, X_val, Y_train, Y_val = train_test_split(X, Y, test_size=0.2, random_state=42)
 
-# Bagging with 100 models
+# Bagging with 50 models
 n_models = 50
 models = []
 predictions_all = np.zeros(len(Y_train))
 
+# Train Logistic Regression models on bootstrap samples
 for _ in range(n_models):
     # Bootstrap sampling: Create a random subset of the data
     X_resampled, Y_resampled = resample(X_train, Y_train, replace=True)
-    # Train a linear regression model on the resampled data
-    model = LinearRegression()
+    
+    # Train a logistic regression model on the resampled data
+    model = LogisticRegression(max_iter=1000000, random_state=42)  # Use logistic regression
     model.fit(X_resampled, Y_resampled)
     models.append(model)
     
-    # Make predictions for this model
-    predictions = (model.predict(X_train) >= 0.0).astype(int)
+    # Make predictions for this model on the training data
+    predictions = model.predict(X_train)  # Logistic regression gives 0 or 1 directly
     predictions_all += predictions
-    
 
-predictions_all = ((predictions_all / n_models) >= 0.5).astype(int)
+# Average the predictions (vote-based)
+predictions_all = (predictions_all / n_models) >= 0.5  # Majority vote, threshold at 0.5
 
-
-# Calculate accuracy for bagging model on training data
+# Calculate Bagging In-sample Error (Ein)
 Ein = np.mean(predictions_all != Y_train)
 print(f"Bagging In-sample Error (Ein): {Ein * 100:.2f}%")
-
-
 
 # Get predictions for each model on the validation data
 predictions_val_all = np.zeros(len(Y_val))
 for model in models:
-    predictions_val = ((model.predict(X_val)) >= 0.0).astype(int)
+    predictions_val = model.predict(X_val)  # Logistic regression gives 0 or 1 directly
     predictions_val_all += predictions_val
 
-predictions_val_all = ((predictions_val_all / n_models) >= 0.5).astype(int)
+# Average the predictions (vote-based)
+predictions_val_all = (predictions_val_all / n_models) >= 0.5  # Majority vote, threshold at 0.5
 
-
-# Calculate accuracy on the validation set
+# Calculate Bagging Validation Accuracy
 validation_accuracy = np.mean(predictions_val_all == Y_val)
 print(f"Bagging Validation Accuracy: {validation_accuracy * 100:.2f}%")
-
 '''
 newo = pd.read_csv('../same_season_test_data.csv')
 X_test =newo[required_columns].fillna(validation_df[required_columns].mean()).to_numpy().astype(float)

@@ -5,10 +5,37 @@ import pandas as pd
 import numpy as np
 
 # Assuming you have your training data in a DataFrame 'train_df'
-train_df = pd.read_csv('../train_data_all.csv')
+train_df = pd.read_csv('train_data_all.csv')
+#train_df = pd.read_csv('./1120commit/2222.csv')
 
 # Define the required columns (features)
-#'''
+'''
+required_columns = [
+'away_pitching_SO_batters_faced_mean',
+'away_pitching_earned_run_avg_mean',
+'home_pitching_earned_run_avg_mean',
+'away_pitcher_SO_batters_faced_mean',
+'away_pitching_H_batters_faced_mean',
+'home_pitching_earned_run_avg_std',
+'home_batting_onbase_plus_slugging_mean',
+'home_pitcher_wpa_def_mean',
+'away_pitching_wpa_def_mean',
+'home_pitching_H_batters_faced_mean',
+'away_pitching_wpa_def_skew',
+'home_pitcher_SO_batters_faced_mean',
+'away_pitching_earned_run_avg_std',
+'away_batting_wpa_bat_skew',
+'away_pitching_SO_batters_faced_std',
+'home_pitching_BB_batters_faced_mean',
+'away_pitching_wpa_def_std',
+'away_batting_RBI_std',
+'away_pitching_H_batters_faced_std',
+'home_batting_onbase_plus_slugging_std',
+'home_pitching_leverage_index_avg_std',
+'home_pitching_H_batters_faced_skew'
+]
+'''
+'''
 required_columns = [
     #'home_batting_batting_avg_10RA', 'home_batting_onbase_perc_10RA', 'home_batting_onbase_plus_slugging_10RA', 
     #'home_batting_leverage_index_avg_10RA', 'home_batting_RBI_10RA', 'away_batting_batting_avg_10RA', 
@@ -62,6 +89,7 @@ required_columns = [
     #'away_pitcher_wpa_def_skew'
 ]
 '''
+#'''
 required_columns = [
     'home_batting_batting_avg_10RA', 'home_batting_onbase_perc_10RA', 'home_batting_onbase_plus_slugging_10RA', 
     'home_batting_leverage_index_avg_10RA', 'home_batting_RBI_10RA', 'away_batting_batting_avg_10RA', 
@@ -113,7 +141,7 @@ required_columns = [
     'away_pitcher_leverage_index_avg_skew', 'away_pitcher_wpa_def_mean', 'away_pitcher_wpa_def_std', 
     'away_pitcher_wpa_def_skew'
 ]
-'''
+#'''
 
 # Fill missing values with column means
 train_df[required_columns] = train_df[required_columns].fillna(train_df[required_columns].mean())
@@ -128,27 +156,25 @@ X_train, X_val, Y_train, Y_val = train_test_split(X, Y, test_size=0.2, random_st
 # Create the SVC model with RBF kernel
 '''
 svm_model = SVC(kernel='rbf', random_state=42)
+param_grid = {
+    'C': [0.001, 0.01],  # Regularization parameter
+    'gamma': ['scale', 'auto', 0.1, 1]  # Gamma values for RBF kernel
+}
 '''
-
 svm_model = SVC(kernel='poly', random_state=42)
+param_grid = {
+    'C': [0.001],  # Regularization parameter
+    'degree': [3],  # Degree of the polynomial kernel
+    'coef0': [1000]   # Constant term for polynomial kernel
+}
+#'''
 
-# Define the parameter grid for the polynomial kernel
-param_grid = {
-    'C': [0.1, 1, 10],  # Regularization parameter
-    'degree': [2],  # Degree of the polynomial kernel
-    'coef0': [0, 1, 10]   # Constant term for polynomial kernel
-}
-'''
-# Hyperparameter tuning (C and gamma)
-param_grid = {
-    'C': [0.1, 1, 10, 100],  # Regularization parameter
-    'gamma': ['scale', 'auto', 0.1, 1, 10]  # Gamma values for RBF kernel
-}
-'''
+
+
 
 
 # Use GridSearchCV to find the best parameters
-grid_search = GridSearchCV(svm_model, param_grid, cv=3, verbose=2)
+grid_search = GridSearchCV(svm_model, param_grid, cv=5, verbose=2)
 grid_search.fit(X_train, Y_train)
 
 # Best model from grid search
@@ -163,3 +189,19 @@ print(f"Validation Accuracy: {accuracy * 100:.2f}%")
 
 # Optionally, you can check the best parameters found by GridSearchCV
 print("Best hyperparameters:", grid_search.best_params_)
+
+
+'''
+newo = pd.read_csv('../same_season_test_data.csv')
+X_test =newo[required_columns].fillna(validation_df[required_columns].mean()).to_numpy().astype(float)
+X_test = np.hstack((np.ones((X_test.shape[0], 1)), X_test))
+predictions2 = model.predict(X_test)
+
+
+result_df = pd.DataFrame({
+    'id': np.arange(len(predictions2)),
+    'home_team_win': predictions2 
+})
+
+result_df.to_csv('result87.csv', index=False)
+'''
