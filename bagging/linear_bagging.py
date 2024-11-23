@@ -147,7 +147,7 @@ for _ in range(n_models):
     models.append(model)
     
     # Make predictions for this model
-    predictions = (model.predict(X_train) >= 0.0).astype(int)
+    predictions = (model.predict(X_train) >= 0.5).astype(int)
     predictions_all += predictions
     
 
@@ -163,7 +163,7 @@ print(f"Bagging In-sample Error (Ein): {Ein * 100:.2f}%")
 # Get predictions for each model on the validation data
 predictions_val_all = np.zeros(len(Y_val))
 for model in models:
-    predictions_val = ((model.predict(X_val)) >= 0.0).astype(int)
+    predictions_val = ((model.predict(X_val)) >= 0.5).astype(int)
     predictions_val_all += predictions_val
 
 predictions_val_all = ((predictions_val_all / n_models) >= 0.5).astype(int)

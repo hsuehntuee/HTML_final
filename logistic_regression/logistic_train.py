@@ -1,10 +1,9 @@
 import pandas as pd
 import numpy as np
+from sklearn.model_selection import train_test_split
+from imblearn.over_sampling import SMOTE
 import os
 
-os.chdir('logistic_regression')
-print("Current working directory:", os.getcwd())
-# 定義線性回歸類別
 class LogisticRegression:
     def __init__(self):
         self.w = None
@@ -33,12 +32,8 @@ class LogisticRegression:
         z = X @ self.w
         z = np.clip(z, -10, 10)
         probabilities = np.where(z >= 0, 1 / (1 + np.exp(-z)), np.exp(z) / (1 + np.exp(z)))
-        return np.where(probabilities >= 0.5, 1, 0)
+        return np.where(probabilities >= 0.45, 1, 0)
 
-# 讀取訓練資料
-train_df = pd.read_csv('../train_data.csv')
-
-# 去除訓練資料中包含空值的行
 #'''
 required_columns = [
     #'home_batting_batting_avg_10RA', 'home_batting_onbase_perc_10RA', 'home_batting_onbase_plus_slugging_10RA', 
@@ -90,7 +85,8 @@ required_columns = [
     'away_pitcher_H_batters_faced_skew', 'away_pitcher_BB_batters_faced_mean', 'away_pitcher_BB_batters_faced_std', 
     #'away_pitcher_BB_batters_faced_skew', 'away_pitcher_leverage_index_avg_mean', 'away_pitcher_leverage_index_avg_std', 
     #'away_pitcher_leverage_index_avg_skew', 'away_pitcher_wpa_def_mean', 'away_pitcher_wpa_def_std', 
-    #'away_pitcher_wpa_def_skew'
+    #'away_pitcher_wpa_def_skew', 
+    'date_standardized'
 ]
 '''
 required_columns = [
@@ -142,35 +138,40 @@ required_columns = [
     'away_pitcher_H_batters_faced_skew', 'away_pitcher_BB_batters_faced_mean', 'away_pitcher_BB_batters_faced_std', 
     'away_pitcher_BB_batters_faced_skew', 'away_pitcher_leverage_index_avg_mean', 'away_pitcher_leverage_index_avg_std', 
     'away_pitcher_leverage_index_avg_skew', 'away_pitcher_wpa_def_mean', 'away_pitcher_wpa_def_std', 
-    'away_pitcher_wpa_def_skew'
+    'away_pitcher_wpa_def_skew', 
+    'date_standardized'
 ]
 '''
+
+os.environ['LOKY_MAX_CPU_COUNT'] = '4'
+# Handle missing data
+# Load training data
+train_df = pd.read_csv('kaggle_train.csv')
 train_df[required_columns] = train_df[required_columns].fillna(train_df[required_columns].mean())
 
-# 抽取特徵和目標變量
-X = train_df[required_columns].to_numpy().astype(float)
-#X = np.hstack((X, X**2)) # 添加多項式特徵
-X = np.hstack((np.ones((X.shape[0], 1)), X))
-Y = train_df['home_team_win'].to_numpy().astype(float)  # 確保 Y 為 float 類型
-#print(Y)
+#smote = SMOTE(sampling_strategy='auto', random_state=42)
 
+# Prepare the feature matrix (X) and target vector (Y)
+X = train_df[required_columns].to_numpy().astype(float)
+X = np.hstack((np.ones((X.shape[0], 1)), X))  # Add bias column
+Y = train_df['home_team_win'].to_numpy().astype(float)  # Target variable
+
+#X, Y = smote.fit_resample(X, Y)
+
+X_train, X_val, Y_train, Y_val = train_test_split(X, Y, test_size=0.2, random_state=42)
 
 # 創建線性回歸模型並進行訓練
 #print(len(Y))
 model = LogisticRegression()
-model.fit(X, Y, 0.00001, 1000000, 0.001)
+model.fit(X_train, Y_train, 0.00001, 500000, 0)
 
 # 讀取驗證資料並填補空值
-validation_df = pd.read_csv('../validation.csv')
-X_val = validation_df[required_columns].fillna(validation_df[required_columns].mean()).to_numpy().astype(float)
-#X_val = np.hstack((X_val, X_val ** 2))  # 添加多項式特徵
-X_val = np.hstack((np.ones((X_val.shape[0], 1)), X_val))
-y_true = validation_df['home_team_win'].to_numpy()  # 驗證集的真實標籤
+
 
 # 預測結果
 predictions = model.predict(X_val)
 
-accuracy = np.mean(predictions == y_true)
+accuracy = np.mean(predictions == Y_val)
 
 print(f"Validation Accuracy: {accuracy * 100:.2f}%")
 
@@ -179,18 +180,3 @@ train_predictions = model.predict(X)
 Ein = np.mean(train_predictions != Y)
 
 print(f"In-sample Error (Ein): {Ein * 100:.2f}%")
-
-
-newo = pd.read_csv('../same_season_test_data.csv')
-X_test =newo[required_columns].fillna(validation_df[required_columns].mean()).to_numpy().astype(float)
-X_test = np.hstack((np.ones((X_test.shape[0], 1)), X_test))
-predictions2 = model.predict(X_test)
-
-# 建立結果 DataFrame
-result_df = pd.DataFrame({
-    'id': np.arange(len(predictions2)),  # id 從 0 到 6184
-    'home_team_win': predictions2  # 預測結果
-})
-
-# 輸出為 CSV
-result_df.to_csv('result8.csv', index=False)

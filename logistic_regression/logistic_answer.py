@@ -1,18 +1,19 @@
 import pandas as pd
 import numpy as np
+from sklearn.model_selection import train_test_split
+from imblearn.over_sampling import SMOTE
 import os
 
-os.chdir('logistic_regression')
-print("Current working directory:", os.getcwd())
-# 定義線性回歸類別
 class LogisticRegression:
     def __init__(self):
         self.w = None
         
     def theta(self, x, y):
-        return 1 / (1 + np.exp(y * (self.w @ x)))
+        z = self.w @ x
+        z = np.clip(z, -10, 10)
+        return 1 / (1 + np.exp(y * z))
 
-    def fit(self, X, y, eta, epochs):
+    def fit(self, X, y, eta, epochs, lamb):
         # Compute weights w
         N, d = X.shape
         self.w = np.zeros(d)  # Initialize weights based on number of features
@@ -21,18 +22,18 @@ class LogisticRegression:
         for _ in range(epochs):  # Iterate over the number of epochs
             idx = np.random.randint(N)  # Randomly select an index
             # Update weights
-            gradient = eta * self.theta(X[idx], y[idx]) * y[idx] * X[idx]
-            self.w += gradient
+            #gradient = eta * self.theta(X[idx], y[idx]) * y[idx] * X[idx]
+            gradient = self.theta(X[idx], y[idx]) * y[idx] * X[idx] + lamb * self.w
+            gradient = np.clip(gradient, -10, 10)
+            self.w += eta * gradient
             #print(self.w)
 
     def predict(self, X):
         z = X @ self.w
-        z = np.clip(z, -500, 500)
+        z = np.clip(z, -10, 10)
         probabilities = np.where(z >= 0, 1 / (1 + np.exp(-z)), np.exp(z) / (1 + np.exp(z)))
-        return np.where(probabilities >= 0.5, 1, 0)
+        return np.where(probabilities >= 0.52, 1, 0)
 
-# 讀取訓練資料
-train_df = pd.read_csv('../train_data_all.csv')
 
 # 去除訓練資料中包含空值的行
 #'''
@@ -86,7 +87,8 @@ required_columns = [
     'away_pitcher_H_batters_faced_skew', 'away_pitcher_BB_batters_faced_mean', 'away_pitcher_BB_batters_faced_std', 
     #'away_pitcher_BB_batters_faced_skew', 'away_pitcher_leverage_index_avg_mean', 'away_pitcher_leverage_index_avg_std', 
     #'away_pitcher_leverage_index_avg_skew', 'away_pitcher_wpa_def_mean', 'away_pitcher_wpa_def_std', 
-    #'away_pitcher_wpa_def_skew'
+    #'away_pitcher_wpa_def_skew', 
+    'date_standardized'
 ]
 '''
 required_columns = [
@@ -138,35 +140,35 @@ required_columns = [
     'away_pitcher_H_batters_faced_skew', 'away_pitcher_BB_batters_faced_mean', 'away_pitcher_BB_batters_faced_std', 
     'away_pitcher_BB_batters_faced_skew', 'away_pitcher_leverage_index_avg_mean', 'away_pitcher_leverage_index_avg_std', 
     'away_pitcher_leverage_index_avg_skew', 'away_pitcher_wpa_def_mean', 'away_pitcher_wpa_def_std', 
-    'away_pitcher_wpa_def_skew'
+    'away_pitcher_wpa_def_skew', 
+    'date_standardized'
 ]
 '''
+
+os.environ['LOKY_MAX_CPU_COUNT'] = '4'
+# Handle missing data
+# Load training data
+train_df = pd.read_csv('kaggle_train.csv')
 train_df[required_columns] = train_df[required_columns].fillna(train_df[required_columns].mean())
 
-# 抽取特徵和目標變量
+#smote = SMOTE(sampling_strategy='auto', random_state=42)
+
+# Prepare the feature matrix (X) and target vector (Y)
 X = train_df[required_columns].to_numpy().astype(float)
-#X = np.hstack((X, X**2)) # 添加多項式特徵
-X = np.hstack((np.ones((X.shape[0], 1)), X))
-Y = train_df['home_team_win'].to_numpy().astype(float)  # 確保 Y 為 float 類型
-#print(Y)
+X = np.hstack((np.ones((X.shape[0], 1)), X))  # Add bias column
+Y = train_df['home_team_win'].to_numpy().astype(float)  # Target variable
 
+#X, Y = smote.fit_resample(X, Y)
 
-# 創建線性回歸模型並進行訓練
-#print(len(Y))
+#X_train, X_val, Y_train, Y_val = train_test_split(X, Y, test_size=0.2, random_state=42)
+
 model = LogisticRegression()
-model.fit(X, Y, 0.0001, 300000)
-
-# 讀取驗證資料並填補空值
-validation_df = pd.read_csv('../validation.csv')
-X_val = validation_df[required_columns].fillna(validation_df[required_columns].mean()).to_numpy().astype(float)
-#X_val = np.hstack((X_val, X_val ** 2))  # 添加多項式特徵
-X_val = np.hstack((np.ones((X_val.shape[0], 1)), X_val))
-y_true = validation_df['home_team_win'].to_numpy()  # 驗證集的真實標籤
+model.fit(X, Y, 0.00001, 500000, 0)
 
 # 預測結果
-predictions = model.predict(X_val)
+predictions = model.predict(X)
 
-accuracy = np.mean(predictions == y_true)
+accuracy = np.mean(predictions == Y)
 
 print(f"Validation Accuracy: {accuracy * 100:.2f}%")
 
@@ -177,17 +179,15 @@ Ein = np.mean(train_predictions != Y)
 print(f"In-sample Error (Ein): {Ein * 100:.2f}%")
 
 
-newo = pd.read_csv('../same_season_test_data.csv')
-X_test =newo[required_columns].fillna(validation_df[required_columns].mean()).to_numpy().astype(float)
-#X_test = np.hstack((X_test, X_test ** 2))
+newo = pd.read_csv('kaggle_test.csv')
+X_test =newo[required_columns].fillna(newo[required_columns].mean()).to_numpy().astype(float)
 X_test = np.hstack((np.ones((X_test.shape[0], 1)), X_test))
 predictions2 = model.predict(X_test)
 
-# 建立結果 DataFrame
 result_df = pd.DataFrame({
     'id': np.arange(len(predictions2)),  # id 從 0 到 6184
     'home_team_win': predictions2  # 預測結果
 })
 
 # 輸出為 CSV
-result_df.to_csv('result8.csv', index=False)
+result_df.to_csv('result88.csv', index=False)

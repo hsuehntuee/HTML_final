@@ -3,8 +3,7 @@ from sklearn.model_selection import GridSearchCV
 import pandas as pd
 import numpy as np
 
-# Load the full training data
-train_df = pd.read_csv('train_data_all.csv')
+
 
 #'''
 required_columns = [
@@ -57,10 +56,14 @@ required_columns = [
     'away_pitcher_H_batters_faced_skew', 'away_pitcher_BB_batters_faced_mean', 'away_pitcher_BB_batters_faced_std', 
     #'away_pitcher_BB_batters_faced_skew', 'away_pitcher_leverage_index_avg_mean', 'away_pitcher_leverage_index_avg_std', 
     #'away_pitcher_leverage_index_avg_skew', 'away_pitcher_wpa_def_mean', 'away_pitcher_wpa_def_std', 
-    #'away_pitcher_wpa_def_skew'
+    #'away_pitcher_wpa_def_skew', 
+    'date_standardized'
 ]
 #'''
 
+
+# Load the full training data
+train_df = pd.read_csv('kaggle_train.csv')
 # Fill missing values with column means
 train_df[required_columns] = train_df[required_columns].fillna(train_df[required_columns].mean())
 
@@ -69,13 +72,13 @@ X = train_df[required_columns].to_numpy().astype(float)
 Y = train_df['home_team_win'].to_numpy().astype(int)  # Assuming binary classification: 0 or 1
 
 # Create the SVC model with polynomial kernel
-svm_model = SVC(kernel='poly', random_state=42)
+svm_model = SVC(kernel='poly', random_state=42, probability=True)
 
 # Define hyperparameter grid for grid search
 param_grid = {
-    'C': [0.001],  # Regularization parameter
+    'C': [0.01],  # Regularization parameter
     'degree': [2],  # Degree of the polynomial kernel
-    'coef0': [1000]  # Constant term for polynomial kernel
+    'coef0': [5]  # Constant term for polynomial kernel
 }
 
 # Use GridSearchCV to find the best parameters using the entire training data
@@ -86,7 +89,7 @@ grid_search.fit(X, Y)  # Fit using the full dataset (X, Y)
 best_svm_model = grid_search.best_estimator_
 
 # Predict on the test data ("same_season_test_data.csv")
-test_df = pd.read_csv('same_season_test_data.csv')
+test_df = pd.read_csv('kaggle_test.csv')
 
 # Handle missing data in the test data
 test_df[required_columns] = test_df[required_columns].fillna(test_df[required_columns].mean())
@@ -95,7 +98,10 @@ test_df[required_columns] = test_df[required_columns].fillna(test_df[required_co
 X_test = test_df[required_columns].to_numpy().astype(float)
 
 # Make predictions on the test data using the best model
-predictions = best_svm_model.predict(X_test)
+#predictions = best_svm_model.predict(X_test)
+
+predictions = best_svm_model.predict_proba(X_test)
+predictions = (predictions[:, 1] >= 0.52).astype(int)
 
 # Prepare the output format
 result_df = pd.DataFrame({
@@ -104,6 +110,4 @@ result_df = pd.DataFrame({
 })
 
 # Output the results to a CSV file
-result_df.to_csv('gaussian_kernel/result.csv', index=False)
-
-print("Predictions saved to 'result.csv'")
+result_df.to_csv('gaussian_kernel/result3.csv', index=False)
