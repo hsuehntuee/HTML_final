@@ -34,7 +34,7 @@ class LogisticRegression:
         probabilities = np.where(z >= 0, 1 / (1 + np.exp(-z)), np.exp(z) / (1 + np.exp(z)))
         return np.where(probabilities >= 0.45, 1, 0)
 
-#'''
+'''
 required_columns = [
     #'home_batting_batting_avg_10RA', 'home_batting_onbase_perc_10RA', 'home_batting_onbase_plus_slugging_10RA', 
     #'home_batting_leverage_index_avg_10RA', 'home_batting_RBI_10RA', 'away_batting_batting_avg_10RA', 
@@ -141,12 +141,12 @@ required_columns = [
     'away_pitcher_wpa_def_skew', 
     'date_standardized'
 ]
-'''
+#'''
 
 os.environ['LOKY_MAX_CPU_COUNT'] = '4'
 # Handle missing data
 # Load training data
-train_df = pd.read_csv('kaggle_train.csv')
+train_df = pd.read_csv('mix_all.csv')
 train_df[required_columns] = train_df[required_columns].fillna(train_df[required_columns].mean())
 
 #smote = SMOTE(sampling_strategy='auto', random_state=42)
@@ -163,7 +163,7 @@ X_train, X_val, Y_train, Y_val = train_test_split(X, Y, test_size=0.2, random_st
 # 創建線性回歸模型並進行訓練
 #print(len(Y))
 model = LogisticRegression()
-model.fit(X_train, Y_train, 0.00001, 500000, 0)
+model.fit(X_train, Y_train, 0.00001, 800000, 0)
 
 # 讀取驗證資料並填補空值
 

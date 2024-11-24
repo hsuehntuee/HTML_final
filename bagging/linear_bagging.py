@@ -123,7 +123,7 @@ required_columns = [
 
 # Handle missing data
 # Load training data
-train_df = pd.read_csv('train_data_all.csv')
+train_df = pd.read_csv('mix_all.csv')
 train_df[required_columns] = train_df[required_columns].fillna(train_df[required_columns].mean())
 
 # Prepare the feature matrix (X) and target vector (Y)
@@ -134,7 +134,7 @@ Y = train_df['home_team_win'].to_numpy().astype(float)  # Target variable
 X_train, X_val, Y_train, Y_val = train_test_split(X, Y, test_size=0.3, random_state=42)
 
 # Bagging with 100 models
-n_models = 50
+n_models = 100
 models = []
 predictions_all = np.zeros(len(Y_train))
 

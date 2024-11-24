@@ -10,7 +10,7 @@ from sklearn.metrics import classification_report
 os.environ['LOKY_MAX_CPU_COUNT'] = '4'
 
 # Define the required columns (features)
-#'''
+'''
 required_columns = [
     #'home_batting_batting_avg_10RA', 'home_batting_onbase_perc_10RA', 'home_batting_onbase_plus_slugging_10RA', 
     #'home_batting_leverage_index_avg_10RA', 'home_batting_RBI_10RA', 'away_batting_batting_avg_10RA', 
@@ -64,8 +64,8 @@ required_columns = [
     #'away_pitcher_wpa_def_skew', 
     'date_standardized'
 ]
-#'''
 '''
+#'''
 required_columns = [
     'home_batting_batting_avg_10RA', 'home_batting_onbase_perc_10RA', 'home_batting_onbase_plus_slugging_10RA', 
     'home_batting_leverage_index_avg_10RA', 'home_batting_RBI_10RA', 'away_batting_batting_avg_10RA', 
@@ -118,10 +118,10 @@ required_columns = [
     'away_pitcher_wpa_def_skew', 
     'date_standardized'
 ]
-'''
+#'''
 
 # Assuming you have your training data in a DataFrame 'train_df'
-train_df = pd.read_csv('kaggle_train.csv')
+train_df = pd.read_csv('mix_all.csv')
 
 # Fill missing values with column means
 train_df[required_columns] = train_df[required_columns].fillna(train_df[required_columns].mean())
@@ -144,12 +144,14 @@ param_grid = {
     'gamma': ['scale', 'auto', 0.1, 1]  # Gamma values for RBF kernel
 }
 '''
-svm_model = SVC(kernel='poly', class_weight='balanced', random_state=42, probability=True)
+#svm_model = SVC(kernel='poly', random_state=42, probability=True)
+svm_model = SVC(kernel='poly', random_state=42)
 param_grid = {
     'C': [0.01],  # Regularization parameter, testing a wider range
     'degree': [2],     # Degree of the polynomial kernel, usually 2 to 4 is a good range
-    'coef0': [5],  # Constant term, typically in the range of 0 to 10
+    'coef0': [1],  # Constant term, typically in the range of 0 to 10
 }
+### 0.01, 2, 1
 #'''
 
 # Use GridSearchCV to find the best parameters
@@ -160,10 +162,11 @@ grid_search.fit(X_train, Y_train)
 best_svm_model = grid_search.best_estimator_
 
 # Predict on the validation set
-#y_pred = best_svm_model.predict(X_val)
 
-probs = best_svm_model.predict_proba(X_val)
-y_pred = (probs[:, 1] >= 0.45).astype(int)
+y_pred = best_svm_model.predict(X_val)
+
+#probs = best_svm_model.predict_proba(X_val)
+#y_pred = (probs[:, 1] >= 0.5).astype(int)
 
 print(classification_report(Y_val, y_pred))
 
