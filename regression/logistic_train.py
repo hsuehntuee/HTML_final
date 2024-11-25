@@ -163,7 +163,7 @@ X_train, X_val, Y_train, Y_val = train_test_split(X, Y, test_size=0.2, random_st
 # 創建線性回歸模型並進行訓練
 #print(len(Y))
 model = LogisticRegression()
-model.fit(X_train, Y_train, 0.00001, 800000, 0)
+model.fit(X_train, Y_train, 0.00001, 300000, 0)
 
 # 讀取驗證資料並填補空值
 

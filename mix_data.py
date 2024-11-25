@@ -5,7 +5,7 @@ df_original = pd.read_csv('kaggle_train.csv')
 df_flipped = pd.read_csv('flipped_kaggle_train.csv')
 
 # Randomly sample 50% from the original dataset
-df_original_sampled = df_original.sample(frac=0.4, random_state=42)
+df_original_sampled = df_original.sample(frac=0.45, random_state=42)
 
 # Get the IDs from the sampled original dataset
 sampled_ids = df_original_sampled['id'].tolist()

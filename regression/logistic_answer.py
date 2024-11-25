@@ -36,7 +36,7 @@ class LogisticRegression:
 
 
 # 去除訓練資料中包含空值的行
-#'''
+'''
 required_columns = [
     #'home_batting_batting_avg_10RA', 'home_batting_onbase_perc_10RA', 'home_batting_onbase_plus_slugging_10RA', 
     #'home_batting_leverage_index_avg_10RA', 'home_batting_RBI_10RA', 'away_batting_batting_avg_10RA', 
@@ -143,12 +143,12 @@ required_columns = [
     'away_pitcher_wpa_def_skew', 
     'date_standardized'
 ]
-'''
+#'''
 
 os.environ['LOKY_MAX_CPU_COUNT'] = '4'
 # Handle missing data
 # Load training data
-train_df = pd.read_csv('kaggle_train.csv')
+train_df = pd.read_csv('4_10_balanced_train_data.csv')
 train_df[required_columns] = train_df[required_columns].fillna(train_df[required_columns].mean())
 
 #smote = SMOTE(sampling_strategy='auto', random_state=42)

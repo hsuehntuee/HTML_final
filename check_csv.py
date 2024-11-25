@@ -1,8 +1,8 @@
 import pandas as pd
 
 # Load the CSV files into pandas DataFrames
-df1 = pd.read_csv('gaussian_kernel/result3.csv')  # Replace with the path to your first CSV
-df2 = pd.read_csv('result88.csv')  # Replace with the path to your second CSV
+df1 = pd.read_csv('kernel/result4.csv')  # Replace with the path to your first CSV
+df2 = pd.read_csv('regression/result_cheated_best.csv')  # Replace with the path to your second CSV
 
 # Merge both DataFrames on 'id' to compare the 'home_team_win' values
 merged_df = pd.merge(df1, df2, on='id', suffixes=('_file1', '_file2'), how='outer', indicator=True)

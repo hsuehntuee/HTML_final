@@ -14,7 +14,7 @@ class LinearRegression:
         return X.dot(self.w)  # Return the continuous output
 
 
-#'''
+'''
 required_columns = [
     #'home_batting_batting_avg_10RA', 'home_batting_onbase_perc_10RA', 'home_batting_onbase_plus_slugging_10RA', 
     #'home_batting_leverage_index_avg_10RA', 'home_batting_RBI_10RA', 'away_batting_batting_avg_10RA', 
@@ -117,21 +117,22 @@ required_columns = [
     'away_pitcher_H_batters_faced_skew', 'away_pitcher_BB_batters_faced_mean', 'away_pitcher_BB_batters_faced_std', 
     'away_pitcher_BB_batters_faced_skew', 'away_pitcher_leverage_index_avg_mean', 'away_pitcher_leverage_index_avg_std', 
     'away_pitcher_leverage_index_avg_skew', 'away_pitcher_wpa_def_mean', 'away_pitcher_wpa_def_std', 
-    'away_pitcher_wpa_def_skew'
+    'away_pitcher_wpa_def_skew',
+    'date_standardized'
 ]
-'''
+#'''
 
 # Handle missing data
 # Load training data
-train_df = pd.read_csv('mix_all.csv')
-train_df[required_columns] = train_df[required_columns].fillna(train_df[required_columns].mean())
-
+train_df = pd.read_csv('kaggle_train.csv')
+#train_df[required_columns] = train_df[required_columns].fillna(train_df[required_columns].mean())
+train_df[required_columns] = train_df[required_columns].fillna(np.random.random())
 # Prepare the feature matrix (X) and target vector (Y)
 X = train_df[required_columns].to_numpy().astype(float)
 X = np.hstack((np.ones((X.shape[0], 1)), X))  # Add bias column
 Y = train_df['home_team_win'].to_numpy().astype(float)  # Target variable
 
-X_train, X_val, Y_train, Y_val = train_test_split(X, Y, test_size=0.3, random_state=42)
+X_train, X_val, Y_train, Y_val = train_test_split(X, Y, test_size=0.2, random_state=42)
 
 # Bagging with 100 models
 n_models = 100

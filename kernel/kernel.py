@@ -121,8 +121,8 @@ required_columns = [
 #'''
 
 # Assuming you have your training data in a DataFrame 'train_df'
-train_df = pd.read_csv('mix_all.csv')
-
+train_df = pd.read_csv('4_10_balanced_train_data.csv')
+#train_df = train_df[train_df['home_team_abbr'] == 'PDF']
 # Fill missing values with column means
 train_df[required_columns] = train_df[required_columns].fillna(train_df[required_columns].mean())
 #smote = SMOTE(sampling_strategy='auto', random_state=42)
@@ -149,13 +149,13 @@ svm_model = SVC(kernel='poly', random_state=42)
 param_grid = {
     'C': [0.01],  # Regularization parameter, testing a wider range
     'degree': [2],     # Degree of the polynomial kernel, usually 2 to 4 is a good range
-    'coef0': [1],  # Constant term, typically in the range of 0 to 10
+    'coef0': [0.5],  # Constant term, typically in the range of 0 to 10
 }
 ### 0.01, 2, 1
 #'''
 
 # Use GridSearchCV to find the best parameters
-grid_search = GridSearchCV(svm_model, param_grid, cv=5, verbose=2)
+grid_search = GridSearchCV(svm_model, param_grid, cv=3, verbose=2)
 grid_search.fit(X_train, Y_train)
 
 # Best model from grid search
