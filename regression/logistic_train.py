@@ -146,7 +146,7 @@ required_columns = [
 os.environ['LOKY_MAX_CPU_COUNT'] = '4'
 # Handle missing data
 # Load training data
-train_df = pd.read_csv('mix_all.csv')
+train_df = pd.read_csv('4_10_balanced_train_data.csv')
 train_df[required_columns] = train_df[required_columns].fillna(train_df[required_columns].mean())
 
 #smote = SMOTE(sampling_strategy='auto', random_state=42)

@@ -37,7 +37,7 @@ class LinearRegression:
 
 
 # 去除訓練資料中包含空值的行
-'''
+
 required_columns = [
     #'home_batting_batting_avg_10RA', 'home_batting_onbase_perc_10RA', 'home_batting_onbase_plus_slugging_10RA', 
     #'home_batting_leverage_index_avg_10RA', 'home_batting_RBI_10RA', 'away_batting_batting_avg_10RA', 
@@ -91,8 +91,8 @@ required_columns = [
     #'away_pitcher_wpa_def_skew', 
     'date_standardized'
 ]
-'''
-required_columns = [
+
+required_columns1 = [
     'home_batting_batting_avg_10RA', 'home_batting_onbase_perc_10RA', 'home_batting_onbase_plus_slugging_10RA', 
     'home_batting_leverage_index_avg_10RA', 'home_batting_RBI_10RA', 'away_batting_batting_avg_10RA', 
     'away_batting_onbase_perc_10RA', 'away_batting_onbase_plus_slugging_10RA', 'away_batting_leverage_index_avg_10RA', 
@@ -144,11 +144,11 @@ required_columns = [
     'away_pitcher_wpa_def_skew', 
     'date_standardized'
 ]
-#'''
+
 
 # Handle missing data
 # Load training data
-train_df = pd.read_csv('train_all_new.csv')
+train_df = pd.read_csv('balanced_train_data.csv')
 train_df[required_columns] = train_df[required_columns].fillna(train_df[required_columns].mean())
 
 # Prepare the feature matrix (X) and target vector (Y)
@@ -160,7 +160,7 @@ X_train, X_val, Y_train, Y_val = train_test_split(X, Y, test_size=0.2, random_st
 
 
 model = LinearRegression()
-model.fit(X_train, Y_train, 0.000001, 1250000)
+model.fit(X_train, Y_train, 0.00001, 600000)
 
 predictions = model.predict(X_val)
 
@@ -168,9 +168,9 @@ accuracy = np.mean(predictions == Y_val)
 
 print(f"Validation Accuracy: {accuracy * 100:.2f}%")
 
-train_predictions = model.predict(X)
+train_predictions = model.predict(X_train)
 
-Ein = np.mean(train_predictions != Y)
+Ein = np.mean(train_predictions != Y_train)
 
 print(f"In-sample Error (Ein): {Ein * 100:.2f}%")
 
