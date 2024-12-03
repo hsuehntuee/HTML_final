@@ -1,8 +1,7 @@
 import pandas as pd
 import numpy as np
 from sklearn.model_selection import train_test_split
-from imblearn.over_sampling import SMOTE
-import os
+
 
 class LogisticRegression:
     def __init__(self):
@@ -90,6 +89,7 @@ required_columns = [
 ]
 '''
 required_columns = [
+    'is_night_game', 'home_team_rest', 'away_team_rest', 'home_pitcher_rest', 'away_pitcher_rest',
     'home_batting_batting_avg_10RA', 'home_batting_onbase_perc_10RA', 'home_batting_onbase_plus_slugging_10RA', 
     'home_batting_leverage_index_avg_10RA', 'home_batting_RBI_10RA', 'away_batting_batting_avg_10RA', 
     'away_batting_onbase_perc_10RA', 'away_batting_onbase_plus_slugging_10RA', 'away_batting_leverage_index_avg_10RA', 
@@ -143,10 +143,9 @@ required_columns = [
 ]
 #'''
 
-os.environ['LOKY_MAX_CPU_COUNT'] = '4'
 # Handle missing data
 # Load training data
-train_df = pd.read_csv('4_10_balanced_train_data.csv')
+train_df = pd.read_csv('filled_kaggle_train.csv')
 train_df[required_columns] = train_df[required_columns].fillna(train_df[required_columns].mean())
 
 #smote = SMOTE(sampling_strategy='auto', random_state=42)
@@ -163,7 +162,7 @@ X_train, X_val, Y_train, Y_val = train_test_split(X, Y, test_size=0.2, random_st
 # 創建線性回歸模型並進行訓練
 #print(len(Y))
 model = LogisticRegression()
-model.fit(X_train, Y_train, 0.00001, 300000, 0)
+model.fit(X_train, Y_train, 0.00001, 800000, 0)
 
 # 讀取驗證資料並填補空值
 
@@ -180,3 +179,17 @@ train_predictions = model.predict(X)
 Ein = np.mean(train_predictions != Y)
 
 print(f"In-sample Error (Ein): {Ein * 100:.2f}%")
+
+'''
+
+weights_abs = np.abs(model.w[1:])  # Skip the bias term (w[0])
+
+# 2. Create a dictionary of feature names and their corresponding absolute weights
+feature_weights = dict(zip(required_columns, weights_abs))
+
+# 3. Sort the dictionary by absolute weights in descending order
+sorted_feature_weights = sorted(feature_weights.items(), key=lambda x: x[1], reverse=True)
+
+for i in sorted_feature_weights:
+    print(i)
+    '''
