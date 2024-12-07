@@ -7,6 +7,7 @@ from tensorflow.keras.layers import Input, Dense, Dropout, BatchNormalization, L
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.regularizers import l2
 from tensorflow.keras.callbacks import ReduceLROnPlateau, EarlyStopping
+import keras_tuner as kt
 
 # 載入與處理資料
 train_df = pd.read_csv('filled_kaggle_train.csv')
@@ -73,31 +74,31 @@ fold_train_accuracies = []
 def create_model(input_dim):
     # Input layer
     inputs = Input(shape=(input_dim,))
-    
+
     # First hidden layer with LeakyReLU activation
-    x = Dense(3000, kernel_regularizer=l2(0.001))(inputs)
+    x = Dense(4096, kernel_regularizer=l2(0.001))(inputs)  # 更新 units_1
     x = LeakyReLU(alpha=0.1)(x)
     x = BatchNormalization()(x)
-    x = Dropout(0.2)(x)
-    
+    x = Dropout(0.3)(x)  # 更新 dropout_1
+
     # Second hidden layer with LeakyReLU activation
-    x = Dense(1000, kernel_regularizer=l2(0.001))(x)
+    x = Dense(3584, kernel_regularizer=l2(0.001))(x)  # 更新 units_2
     x = LeakyReLU(alpha=0.1)(x)
     x = BatchNormalization()(x)
-    x = Dropout(0.2)(x)
-    
-    
+    x = Dropout(0.3)(x)  # 更新 dropout_2
+
     # Output layer
     outputs = Dense(1, activation='sigmoid')(x)
-    
+
     # Create model
     model = Model(inputs=inputs, outputs=outputs)
-    
-    # Compile model with Adam optimizer and binary crossentropy loss
-    model.compile(loss='binary_crossentropy', optimizer=Adam(learning_rate=0.001), metrics=['accuracy'])
-    
-    return model
 
+    # Compile model with Adam optimizer and updated learning rate
+    model.compile(loss='binary_crossentropy', 
+                  optimizer=Adam(learning_rate=1.0694e-05),  # 更新 learning_rate
+                  metrics=['accuracy'])
+
+    return model
 # K-Fold Cross Validation
 for fold, (train_idx, val_idx) in enumerate(kf.split(X, Y)):
     print(f"Training Fold {fold + 1}...")

@@ -53,7 +53,7 @@ required_columns = [
     'away_pitching_BB_batters_faced_skew', 'away_pitching_leverage_index_avg_mean', 'away_pitching_leverage_index_avg_std', 
     'away_pitching_leverage_index_avg_skew', 'away_pitching_wpa_def_mean', 'away_pitching_wpa_def_std', 
     'away_pitching_wpa_def_skew', 
-    'date_standardized',
+    'date_standardized'
 
 ]
 # 載入與處理資料
@@ -67,7 +67,7 @@ Y = train_df['home_team_win'].to_numpy().astype(int)
 
 # 測試集處理
 newo = pd.read_csv('kaggle_test.csv')
-X_test = newo[required_columns].fillna(newo[required_columns].mean()).to_numpy().astype(float)
+#X_test = newo[required_columns].fillna(newo[required_columns].mean()).to_numpy().astype(float)
 
 # 設定 K-Fold
 kf = KFold(n_splits=10, shuffle=True, random_state=42)
@@ -139,7 +139,7 @@ for fold, (train_idx, val_idx) in enumerate(kf.split(X, Y)):
         best_model = best_model_temp
 
 # 測試新檔案並輸出結果
-predictions2 = (best_model.predict(X_test) > 0.5).astype(int)
-result_df = pd.DataFrame({'id': np.arange(len(predictions2)), 'home_team_win': predictions2.flatten()})
-result_df.to_csv('result_team_only_svm_tuned.csv', index=False)
-print("Test predictions saved to 'result_team_only_svm_tuned.csv'.")
+#predictions2 = (best_model.predict(X_test) > 0.5).astype(int)
+#result_df = pd.DataFrame({'id': np.arange(len(predictions2)), 'home_team_win': predictions2.flatten()})
+#result_df.to_csv('result_team_only_svm_tuned.csv', index=False)
+#print("Test predictions saved to 'result_team_only_svm_tuned.csv'.")
