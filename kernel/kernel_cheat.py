@@ -1,39 +1,10 @@
+from sklearn.svm import SVC
+from sklearn.model_selection import GridSearchCV
 import pandas as pd
 import numpy as np
-from sklearn.model_selection import train_test_split
+from sklearn.metrics import classification_report
 
-
-class LogisticRegression:
-    def __init__(self):
-        self.w = None
-        
-    def theta(self, x, y):
-        z = self.w @ x
-        z = np.clip(z, -10, 10)
-        return 1 / (1 + np.exp(y * z))
-
-    def fit(self, X, y, eta, epochs, lamb):
-        # Compute weights w
-        N, d = X.shape
-        self.w = np.zeros(d)  # Initialize weights based on number of features
-        y = np.where(y <= 0, -1, 1)  # Convert labels to -1 and 1
-        
-        for _ in range(epochs):  # Iterate over the number of epochs
-            idx = np.random.randint(N)  # Randomly select an index
-            # Update weights
-            #gradient = eta * self.theta(X[idx], y[idx]) * y[idx] * X[idx]
-            gradient = self.theta(X[idx], y[idx]) * y[idx] * X[idx] + lamb * self.w
-            gradient = np.clip(gradient, -10, 10)
-            self.w += eta * gradient
-            #print(self.w)
-
-    def predict(self, X):
-        z = X @ self.w
-        z = np.clip(z, -10, 10)
-        probabilities = np.where(z >= 0, 1 / (1 + np.exp(-z)), np.exp(z) / (1 + np.exp(z)))
-        return np.where(probabilities >= 0.52, 1, 0)
-
-
+# Load required data (the same as in your original code)
 required_columns = [
     'home_team_rest', 'away_team_rest', 'home_pitcher_rest', 'away_pitcher_rest',
     'home_batting_batting_avg_10RA', 'home_batting_onbase_perc_10RA', 'home_batting_onbase_plus_slugging_10RA', 
@@ -98,25 +69,46 @@ Y3 = df4['home_team_win'].to_numpy().astype(int)
 # Concatenate the data
 X = np.vstack((X1, X2))
 Y = np.concatenate((Y1, Y2), axis=0)
-X = np.hstack((np.ones((X.shape[0], 1)), X))
-X_test = np.hstack((np.ones((X3.shape[0], 1)), X3))
-Y_test = Y3
+Y = np.where(Y == 0, -1, Y)
+Y3 = np.where(Y3 == 0, -1, Y3)
+# Perform grid search to tune the SVM parameters
+'''
+svm_model = SVC(kernel='rbf', random_state=42)
+param_grid = {
+    'C': [1000],  # Regularization parameter
+    'gamma': [1000]  # Gamma values for RBF kernel
+}
+'''
 
-#X_train, X_val, Y_train, Y_val = train_test_split(X, Y, test_size=0.2, random_state=42)
+svm_model = SVC(kernel='poly', random_state=42)
+param_grid = {
+    'C': [0.001],  # Regularization parameter, testing a wider range
+    'degree': [3],     # Degree of the polynomial kernel, usually 2 to 4 is a good range
+    'coef0': [500],  # Constant term, typically in the range of 0 to 10
+}
+#'''
+grid_search = GridSearchCV(svm_model, param_grid, cv=5, verbose=2)
+grid_search.fit(X, Y)
 
-model = LogisticRegression()
-model.fit(X, Y, 0.00001, 800000, 0)
+# Get the best SVM model after grid search
+best_svm_model = grid_search.best_estimator_
 
-# 預測結果
-predictions = model.predict(X_test)
+# Fit the model with all data (it was already fitted during grid search)
+best_svm_model.fit(X, Y)  # Ensure the model is fitted before feature selection
 
-accuracy = np.mean(predictions == Y_test)
+# Get all the coefficients (w_i) for all features
+#coefficients = best_svm_model.coef_[0]  # Coefficients for all features
 
-print(f"Validation Accuracy: {accuracy * 100:.2f}%")
+# Print all coefficients (w_i)
+#print("All weights (w_i) for all features:")
+#for feature, weight in zip(required_columns, coefficients):
+#    print(f"{feature}: {weight}")
 
-train_predictions = model.predict(X)
+Y_pred = best_svm_model.predict(X3)  # Predict on the validation set X2
 
-Ein = np.mean(train_predictions != Y)
+# Generate classification report
+print("\nValidation Classification Report:")
+print(classification_report(Y3, Y_pred))
+print(np.mean(Y_pred))
 
-print(f"In-sample Error (Ein): {Ein * 100:.2f}%")
-print(np.mean(predictions))
+print("Best hyperparameters:", grid_search.best_params_)
