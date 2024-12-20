@@ -2,10 +2,10 @@ import pandas as pd
 from datetime import datetime
 
 
-df = pd.read_csv('stage12_wash_train.csv')
+df = pd.read_csv('stage2_test.csv')
 
 
-df['date'] = pd.to_datetime(df['date'], format='%Y/%m/%d')
+df['date'] = pd.to_datetime(df['date'], format='%Y-%m-%d')
 
 
 reference_date = datetime(2016, 1, 1)
@@ -21,5 +21,5 @@ df = df.sort_values(by='date_standardized')
 
 
 # Save the new DataFrame to a new CSV file
-df.to_csv('stage12_wash_dateFormatted_train.csv', index=False)
+df.to_csv('stage2_dateFormatted_test.csv', index=False)
 
