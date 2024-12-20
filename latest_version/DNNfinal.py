@@ -11,10 +11,10 @@ import matplotlib.pyplot as plt
 import time
 start = time.time()
 # 載入資料
-train_df = pd.read_csv('train.csv')
-val_df = pd.read_csv('validation.csv')
-test_df = pd.read_csv('test.csv')
-answer_df = pd.read_csv('answer.csv')  # 載入預測解答
+train_df = pd.read_csv('stage1_train.csv')
+val_df = pd.read_csv('stage1_validation.csv')
+test_df = pd.read_csv('stage1_test.csv')
+answer_df = pd.read_csv('stage1_label.csv')  # 載入預測解答
 
 # 取得輸入所需欄位
 def get_required_columns():
