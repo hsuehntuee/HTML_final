@@ -5,6 +5,7 @@ import numpy as np
 from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import classification_report, accuracy_score
 from sklearn.pipeline import Pipeline
+from sklearn.model_selection import train_test_split
 
 # Load required data (the same as in your original code)
 required_columns = [
@@ -166,70 +167,94 @@ required_columns = [
         'away_pitcher_wpa_def_skew',
         'date_standardized',
     ]
-
+'''
+required_columns = [
+        'home_team_rest',
+        'away_team_rest',
+        'home_pitcher_rest',
+        'away_pitcher_rest',
+        'home_batting_batting_avg_10RA',
+        'home_batting_onbase_perc_10RA',
+        'home_batting_onbase_plus_slugging_10RA',
+        'home_batting_leverage_index_avg_10RA',
+        'home_batting_RBI_10RA',
+        'away_batting_batting_avg_10RA',
+        'away_batting_onbase_perc_10RA',
+        'away_batting_onbase_plus_slugging_10RA',
+        'away_batting_leverage_index_avg_10RA',
+        'away_batting_RBI_10RA',
+        'home_pitching_earned_run_avg_10RA',
+        'home_pitching_SO_batters_faced_10RA',
+        'home_pitching_H_batters_faced_10RA',
+        'home_pitching_BB_batters_faced_10RA',
+        'away_pitching_earned_run_avg_10RA',
+        'away_pitching_SO_batters_faced_10RA',
+        'away_pitching_H_batters_faced_10RA',
+        'away_pitching_BB_batters_faced_10RA',
+        'home_pitcher_earned_run_avg_10RA',
+        'home_pitcher_SO_batters_faced_10RA',
+        'home_pitcher_H_batters_faced_10RA',
+        'home_pitcher_BB_batters_faced_10RA',
+        'away_pitcher_earned_run_avg_10RA',
+        'away_pitcher_SO_batters_faced_10RA',
+        'away_pitcher_H_batters_faced_10RA',
+        'away_pitcher_BB_batters_faced_10RA',
+]
+'''
 data_type = "4_reverse_average_first"
 # Read data
 df1 = pd.read_csv(f'_SUPER_DATA/{data_type}/stage_train.csv')
 df2 = pd.read_csv(f'_SUPER_DATA/{data_type}/stage_validation.csv')
-df3 = pd.read_csv(f'_SUPER_DATA/{data_type}/stage2_test.csv')
-df4 = pd.read_csv(f'_SUPER_DATA/{data_type}/stage2_label.csv')
-df3 = df3.sort_values(by='id')
 
 # Convert to numpy arrays
 X1 = df1[required_columns].to_numpy().astype(float)
 X2 = df2[required_columns].to_numpy().astype(float)
-X3 = df3[required_columns].to_numpy().astype(float)
+
 Y1 = df1['home_team_win'].to_numpy().astype(int)
 Y2 = df2['home_team_win'].to_numpy().astype(int)
-Y3 = df4['home_team_win'].to_numpy().astype(int)
-
-# Concatenate the data
+'''
 X = np.vstack((X1, X2))
 Y = np.concatenate((Y1, Y2), axis=0)
-Y = np.where(Y == 0, -1, Y)
-Y3 = np.where(Y3 == 0, -1, Y3)
+
+X1, X2, Y1, Y2 = train_test_split(X, Y, test_size=0.2, random_state=2)
 '''
-sigma = np.std(X, axis=0)
+Y1 = np.where(Y1 == 0, -1, Y1)
+Y2 = np.where(Y2 == 0, -1, Y2)
+#'''
+sigma = np.std(X1, axis=0)
 lower_bound = -2 * sigma
 upper_bound = 2 * sigma
-X = np.clip(X, lower_bound, upper_bound)
+X1 = np.clip(X1, lower_bound, upper_bound)
 '''
 # Perform grid search to tune the SVM parameters
 svm_model = Pipeline([
     ('scaler', StandardScaler()),  # Step 1: Scale the data
     ('svm', SVC(kernel='poly', random_state=42))  # Step 2: Apply SVM
-])
-#svm_model = SVC(kernel='poly', random_state=42)
+]
+'''
+svm_model = SVC(kernel='poly', random_state=42)
 param_grid = {
-    'svm__C': [0.0001],  # Regularization parameter, testing a wider range
-    'svm__degree': [2],     # Degree of the polynomial kernel, usually 2 to 4 is a good range
-    'svm__coef0': [300],  # Constant term, typically in the range of 0 to 10
+    'C': [0.0001],  # Regularization parameter, testing a wider range
+    'degree': [2],     # Degree of the polynomial kernel, usually 2 to 4 is a good range
+    'coef0': [300],  # Constant term, typically in the range of 0 to 10
 }
 #'''
 grid_search = GridSearchCV(svm_model, param_grid, cv=5, verbose=2)
-grid_search.fit(X, Y)
+grid_search.fit(X1, Y1)
 
 # Get the best SVM model after grid search
 best_svm_model = grid_search.best_estimator_
 
 # Fit the model with all data (it was already fitted during grid search)
-best_svm_model.fit(X, Y)  # Ensure the model is fitted before feature selection
+best_svm_model.fit(X1, Y1)  # Ensure the model is fitted before feature selection
 
-# Get all the coefficients (w_i) for all features
-#coefficients = best_svm_model.coef_[0]  # Coefficients for all features
-
-# Print all coefficients (w_i)
-#print("All weights (w_i) for all features:")
-#for feature, weight in zip(required_columns, coefficients):
-#    print(f"{feature}: {weight}")
-
-Y_pred = best_svm_model.predict(X3)  # Predict on the validation set X2
+Y_pred = best_svm_model.predict(X2)  # Predict on the validation set X2
 
 # Generate classification report
 print("\nValidation Classification Report:")
-print(classification_report(Y3, Y_pred))
+print(classification_report(Y2, Y_pred))
 print(np.mean(Y_pred))
-accuracy = accuracy_score(Y3, Y_pred)
+accuracy = accuracy_score(Y2, Y_pred)
 print(f"Validation Accuracy: {accuracy * 100:.2f}%")
 
 print("Best hyperparameters:", grid_search.best_params_)
